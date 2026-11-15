@@ -1,0 +1,11 @@
+using SurgeLab.Api;
+var builder=WebApplication.CreateBuilder(args);
+builder.Services.AddEndpointsApiExplorer(); builder.Services.AddSwaggerGen(); builder.Services.AddCors(o=>o.AddDefaultPolicy(p=>p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader())); builder.Services.AddSingleton<IRideStore,InMemoryRideStore>(); builder.Services.AddSingleton<IKafkaProducer,KafkaProducer>(); builder.Services.AddSingleton<ISurgeService,SurgeService>(); builder.Services.AddSingleton<IAnalystAgent,AnalystAgentService>();
+var app=builder.Build(); app.UseCors(); app.UseSwagger(); app.UseSwaggerUI();
+app.MapGet("/health",()=>Results.Ok(new{status="ok"}));
+app.MapPost("/api/rides/generate-normal",async(IRideStore s,IKafkaProducer k)=>Results.Ok(await s.GenerateAsync("normal",k)));
+app.MapPost("/api/rides/generate-surge",async(IRideStore s,IKafkaProducer k)=>Results.Ok(await s.GenerateAsync("surge",k)));
+app.MapGet("/api/rides",(IRideStore s)=>Results.Ok(s.All()));
+app.MapPost("/api/surge/report",async(ISurgeService svc)=>Results.Ok(await svc.ReportAsync()));
+app.MapPost("/api/analyst/report",async(ISurgeService svc,IAnalystAgent a)=>{var r=await svc.ReportAsync(); return Results.Ok(await a.AnalyzeAsync(r));});
+app.Run();

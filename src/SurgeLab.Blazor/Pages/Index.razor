@@ -1,0 +1,10 @@
+@page "/"
+@inject HttpClient Http
+<h3>Ride-Share Surge - Real-Time Analytics</h3>
+<p><b>Story:</b> 5pm rain Toronto. Downtown 120 people want rides, only 10 drivers. Normal $20, Surge 2.5x = $50 gets drivers downtown. Without surge wait 38 min, with surge 4 min.</p>
+<button @onclick="GenNormal">1. Generate Normal Demand - Downtown 20 rides</button>
+<button @onclick="GenSurge">2. Generate Surge Demand - Downtown 120 rides, rain, 5pm</button>
+<button @onclick="Report">3. Build Surge Report (via Airflow logic)</button>
+<button @onclick="Analyst">4. Ask Analyst Agent</button>
+@if(!string.IsNullOrEmpty(msg)){<pre style="background:#fff7e6;padding:16px;white-space:pre-wrap">@msg</pre>}
+@code{private string? msg; private async Task GenNormal(){var r=await Http.PostAsync("/api/rides/generate-normal",null); msg="Normal: "+await r.Content.ReadAsStringAsync();} private async Task GenSurge(){var r=await Http.PostAsync("/api/rides/generate-surge",null); msg="Surge: "+await r.Content.ReadAsStringAsync();} private async Task Report(){var r=await Http.PostAsync("/api/surge/report",null); msg="Report:\n"+await r.Content.ReadAsStringAsync();} private async Task Analyst(){var r=await Http.PostAsync("/api/analyst/report",null); msg="Analyst:\n"+await r.Content.ReadAsStringAsync();}}
